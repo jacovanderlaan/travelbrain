@@ -51,8 +51,11 @@ jobs:
           python ../pipeline/draft_page.py --destination Palermo --draft-file ../pipeline/palermo_draft.json
           python ../pipeline/draft_page.py --destination Ortigia --draft-file ../pipeline/ortigia_draft.json
 
-      - name: Build the site
-        run: npm run build
+      - name: Export content.json from the brain
+        run: python scripts/export_content.py
+
+      - name: Astro build
+        run: npx astro build --verbose
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
