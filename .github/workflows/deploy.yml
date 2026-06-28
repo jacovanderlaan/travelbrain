@@ -1,0 +1,70 @@
+name: Deploy travelbrain site
+
+# Builds the Astro site in site/ and publishes it to GitHub Pages.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python deps (DuckDB for the content export)
+        run: pip install duckdb
+
+      - name: Install Node deps
+        run: npm ci
+
+      # The brain DB is gitignored (generated). Rebuild it on CI so the export has data.
+      - name: Build the curation brain
+        run: python ../brain/build_db.py --reset
+
+      # Drafted venue pages live in dim_content, which --reset wipes. Re-draft from
+      # the committed draft JSONs (no API key needed; --draft-file path).
+      - name: Restore drafted pages
+        run: |
+          python ../pipeline/draft_page.py --destination Palermo --draft-file ../pipeline/palermo_draft.json
+          python ../pipeline/draft_page.py --destination Ortigia --draft-file ../pipeline/ortigia_draft.json
+
+      - name: Build the site
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

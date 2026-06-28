@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated databases
+*.duckdb
+*.duckdb.wal
+
+# Astro site
+site/node_modules/
+site/dist/
+site/.astro/
+site/src/content.json
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,68 @@
+---
+import content from '../content.json';
+
+const pages = content.pages;
+function destOf(p) { return (p.frontmatter && p.frontmatter.destination) || p.title; }
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');  // '' or '/ai'
+const url = (p) => base + p;  // prefix internal paths (images, links) for the Pages sub-path
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Curated Sicily — adults, design-led, quiet</title>
+    <meta name="description" content="A curated, design-led, adults-suitable guide to eating and staying in Sicily — filtered by a fixed taste, sourced from named publications, with every claim traceable to its source." />
+    <style>
+      :root { --ink: #1a1a1a; --muted: #6b6b6b; --line: #e5e2dc; --bg: #faf8f5; --accent: #2a4d46; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--ink);
+        font: 17px/1.6 ui-serif, Georgia, "Times New Roman", serif; }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+      header.brand { font: 600 13px/1 ui-sans-serif, system-ui, sans-serif;
+        letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 2rem; }
+      h1 { font-size: 2.4rem; line-height: 1.1; margin: 0 0 1rem; letter-spacing: -.01em; }
+      .lede { font-size: 1.15rem; color: #333; margin: 0 0 1rem; }
+      .method { font-size: .95rem; color: var(--muted); margin: 0 0 3rem; }
+      .guides { display: grid; gap: 1.5rem; }
+      a.card { display: block; text-decoration: none; color: inherit;
+        border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff;
+        transition: box-shadow .15s; }
+      a.card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.07); }
+      a.card img { width: 100%; height: 180px; object-fit: cover; display: block; }
+      a.card .cardbody { padding: 1.1rem 1.3rem 1.4rem; }
+      a.card .place { font: 600 12px/1 ui-sans-serif, system-ui, sans-serif;
+        letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+      a.card .ctitle { font-size: 1.3rem; margin: .4rem 0 .3rem; }
+      a.card .count { font: 13px ui-sans-serif, system-ui, sans-serif; color: var(--muted); }
+      footer { margin-top: 3.5rem; font: 12px/1.6 ui-sans-serif, system-ui, sans-serif; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="brand">Curated · adults · design-led · quiet</header>
+      <h1>Sicily, for grown-ups with an eye</h1>
+      <p class="lede">Where to eat and stay — for adults who want design and quiet over scale.</p>
+      <p class="method">Every venue is filtered by one fixed taste and backed by named publications
+        (Michelin, Gambero Rosso, Mr &amp; Mrs Smith, Wallpaper*, Condé Nast Traveller). The rules
+        come before the recommendation: a venue can be praised by a magazine and still be left off,
+        if the facts don't fit. Every claim traces to its source.</p>
+
+      <div class="guides">
+        {pages.map((p) => (
+          <a class="card" href={url(`/${p.slug}`)}>
+            {p.header_image && <img src={url(p.header_image.url_full)} alt={p.header_image.alt_text} loading="lazy" />}
+            <div class="cardbody">
+              <div class="place">{destOf(p)}</div>
+              <div class="ctitle">{p.title.replace(/ \(Adults.*$/, '')}</div>
+              <div class="count">{p.venues.length} curated venues</div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <footer>A curation demo: Structure + Data + Rules + AI. Content generated from a frozen,
+        fact-checked brief; provenance preserved from published sentence to source.</footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+-- ============================================================
+-- Affiliate mappings — TEMPLATE (copy to affiliate_mappings.sql and fill in)
+--
+-- This file is a template on purpose: real affiliate links need (1) YOUR affiliate
+-- account id and (2) each venue's id/slug on the provider. We never fabricate these
+-- — a wrong deeplink is worse than an honest "Visit site" fallback.
+--
+-- HOW IT WORKS:
+--   dim_provider.tracking_template has {provider_ref} and {site} placeholders.
+--   map_venue_provider.provider_ref supplies the per-venue id.
+--   The export resolves: template -> {provider_ref}=ref, {site}=site_slug.
+--   A venue WITH a mapping renders "Book · <provider>" (rel=sponsored nofollow);
+--   WITHOUT one it falls back to the venue's own website ("Visit site").
+--
+-- TO ACTIVATE:
+--   1. Sign up: Booking.com affiliate (or TheFork for restaurants, etc.).
+--   2. Put your account id in the provider's tracking_template {site}/aid slot
+--      (or store it in dim_site and adjust the template).
+--   3. For each bookable venue, find its provider id/slug and add a row below.
+--   4. Save as affiliate_mappings.sql (drop the .template), then:
+--        python brain/build_db.py            # without --reset, to keep generated rows
+--      or add it to build_db.py's research-file loop.
+-- ============================================================
+
+-- Set your Booking.com affiliate id (aid) in the provider template.
+-- Example template already seeded: 'https://www.booking.com/hotel/{provider_ref}.html?aid={site}'
+-- If you prefer the aid fixed here rather than via {site}:
+-- UPDATE dim_provider
+--   SET tracking_template = 'https://www.booking.com/hotel/{provider_ref}.html?aid=YOUR_AID'
+--   WHERE name = 'Booking.com';
+
+-- Per-venue mapping rows (fill provider_ref with the real Booking.com hotel slug):
+-- INSERT INTO map_venue_provider (venue_sk, provider_sk, provider_ref)
+-- VALUES
+--   ((SELECT venue_sk FROM dim_venue WHERE canonical_hash='villa-igiea-palermo'),
+--    (SELECT provider_sk FROM dim_provider WHERE name='Booking.com'),
+--    'it/villa-igiea')        -- <- real Booking.com slug
+-- ON CONFLICT (venue_sk, provider_sk) DO UPDATE SET provider_ref = excluded.provider_ref;
+
+-- To add a restaurant-booking provider later (e.g. TheFork):
+-- INSERT INTO dim_provider (name, affiliate_network, commission_model, tracking_template)
+-- VALUES ('TheFork', 'awin', 'cpa', 'https://www.thefork.com/restaurant/{provider_ref}?utm=YOUR_AFFID')
+-- ON CONFLICT (name) DO NOTHING;
